@@ -23,7 +23,7 @@ conda activate inbd_gpu
 #el espacio local a utilizar se reserva dcon --tmp=XXXGb
 LOCAL_NODE_DIR=/scratch/henry.marichal/
 #HOME_DATASET_DIR=~/repos/INBD/dataset/EH
-HOME_DATASET_DIR=~/datasets/inbd_3
+HOME_DATASET_DIR=~/datasets/inbd_2
 HOME_RESULTADOS_DIR=~/resultados/inbd_pinus_taeda_$(date +'%Y%m%d_%H%M%S')
 HOME_RESULTADOS_MODEL_DIR=$HOME_RESULTADOS_DIR/model
 # -------------------------------------------------------
