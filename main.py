@@ -73,6 +73,7 @@ def train(args):
     model_destination     = os.path.join(destination, 'model')
     model_destination_tmp = model.save(model_destination+'.tmp.pt.zip')
     model                 = util.load_model(model_destination_tmp)
+    kw['num_workers']     = 1
     err = model.start_training(
         imagefiles,     annotations,
         val_imagefiles, val_annotations,
