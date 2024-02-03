@@ -50,7 +50,7 @@ class SegmentationTask(training.TrainingTask):
         bce_fn  = torch.nn.functional.binary_cross_entropy_with_logits
         bce     = [
             bce_fn(ypred['background'], ytrue[:,CLASSES['background']].float()) * 1/100,
-            bce_fn(ypred['center'],     ytrue[:,CLASSES['center']].float())     * 1/10,
+            bce_fn(ypred['center'],     ytrue[:,CLASSES['center']].float())     * 1,
         ]
         bce     = torch.stack(bce).sum()
 
