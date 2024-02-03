@@ -1,8 +1,8 @@
 #!/bin/bash
 #SBATCH --job-name=inbd
 #SBATCH --ntasks=16
-#SBATCH --mem=60G
-#SBATCH --time=12:00:00
+#SBATCH --mem=40G
+#SBATCH --time=04:00:00
 #SBATCH --mail-type=ALL
 #SBATCH --tmp=100G
 #SBATCH --mail-user=henry.marichal@fing.edu.uy
