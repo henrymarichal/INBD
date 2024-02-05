@@ -53,7 +53,7 @@ def train(args):
             'wd_lambda'      : args.wd_lambda,
             'per_epoch_it'   : args.per_epoch_it,
             'bd_augment'     : args.bd_augment,
-            'batch_size'     : 1
+            #'batch_size'     : 1
         }
     elif args.modeltype == 'MaskRCNN':
         from src import maskrcnn
@@ -79,7 +79,7 @@ def train(args):
     model_destination     = os.path.join(destination, 'model')
     model_destination_tmp = model.save(model_destination+'.tmp.pt.zip')
     model                 = util.load_model(model_destination_tmp)
-    kw['num_workers']     = 0
+    #kw['num_workers']     = 0
     err = model.start_training(
         imagefiles,     annotations,
         val_imagefiles, val_annotations,
@@ -226,7 +226,7 @@ if __name__ == '__main__':
     parser_train.add_argument('--size',            type=int,   default=512, help='Resolution for the cartesian model')
     parser_train.add_argument('--backbone',        type=str,   default='mobilenet3l',  help='UNet backbone')
     
-    parser_train.add_argument('--wd',              type=int,   default=1,    help='Wedging ring detection (WRD)')  #bool
+    parser_train.add_argument('--wd',              type=int,   default=0,    help='Wedging ring detection (WRD)')  #bool
     parser_train.add_argument('--wd_lambda',       type=float, default=0.01, help='WRD loss weight')
     parser_train.add_argument('--radcat',          type=int,   default=1,    help='Concatenate radii as input for the INBD network')  #bool
     parser_train.add_argument('--angular-density', type=float, default=6.28, help='Hyperparameter alpha')
