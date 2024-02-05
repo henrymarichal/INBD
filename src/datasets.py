@@ -12,7 +12,7 @@ class Dataset:
         images, 
         targets, 
         scale_range             =   (1.8, 3.0), 
-        patch_size              =   128,
+        patch_size              =   512,
         slack_size              =   32, 
         augment                 =   False, 
         color_jitter            =   True,
