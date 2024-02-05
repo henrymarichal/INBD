@@ -1,7 +1,7 @@
 import argparse, sys, os, time, glob
 import warnings; warnings.simplefilter('ignore')  #pytorch is too noisy
 
-
+import torch
 from src import util
 
 def train(args):
@@ -33,6 +33,11 @@ def train(args):
         assert os.path.exists(args.segmentationmodel)
         segmentationmodel = util.load_segmentationmodel(args.segmentationmodel)
         from src import INBD
+
+        # Your training code here
+
+        # Print the maximum GPU memory usage
+        print(torch.cuda.max_memory_allocated(device=torch.device('cuda')))
         model = INBD.INBD_Model(
             segmentationmodel, 
             backbone           = args.backbone,
@@ -48,6 +53,7 @@ def train(args):
             'wd_lambda'      : args.wd_lambda,
             'per_epoch_it'   : args.per_epoch_it,
             'bd_augment'     : args.bd_augment,
+            'batch_size'     : 1
         }
     elif args.modeltype == 'MaskRCNN':
         from src import maskrcnn
@@ -73,7 +79,7 @@ def train(args):
     model_destination     = os.path.join(destination, 'model')
     model_destination_tmp = model.save(model_destination+'.tmp.pt.zip')
     model                 = util.load_model(model_destination_tmp)
-    kw['num_workers']     = 1
+    kw['num_workers']     = 0
     err = model.start_training(
         imagefiles,     annotations,
         val_imagefiles, val_annotations,
