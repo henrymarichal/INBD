@@ -2,7 +2,7 @@
 #SBATCH --job-name=inbd
 #SBATCH --ntasks=8
 #SBATCH --mem=80G
-#SBATCH --time=04:00:00
+#SBATCH --time=08:00:00
 #SBATCH --mail-type=ALL
 #SBATCH --tmp=100G
 #SBATCH --mail-user=henry.marichal@fing.edu.uy
