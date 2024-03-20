@@ -1,7 +1,7 @@
 #!/bin/bash
 #SBATCH --job-name=inbd
 #SBATCH --ntasks=8
-#SBATCH --mem=20G
+#SBATCH --mem=10G
 #SBATCH --time=08:00:00
 #SBATCH --mail-type=ALL
 #SBATCH --tmp=100G
