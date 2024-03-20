@@ -1,3 +1,4 @@
+import os
 import typing as tp
 import numpy as np
 import torch, torchvision
@@ -26,14 +27,28 @@ class INBD_Task(TrainingTask):
         self.per_epoch_it   = per_epoch_it
         self.bd_augment     = bd_augment
     
-    def training_step(self, batch:tp.Tuple[TrainstepData, int], device='cuda') -> tp.Tuple[torch.Tensor, tp.Dict]:
-        data, l = batch
+    def training_step(self, batch:tp.Tuple[TrainstepData, int], device='cuda', debug=False) -> tp.Tuple[torch.Tensor, tp.Dict]:
+        data, l, index = batch
+        if debug:
+            from pathlib import Path
+
+            output_dir = Path('./output')
+            if not output_dir.exists():
+                output_dir.mkdir(exist_ok=True, parents=True)
+            # else:
+            #     #remove all files
+            #     os.system(f'rm -r {str(output_dir)}/*')
 
         logs:tp.Dict[str, tp.Any]   = {}
 
         valid_rings                 = np.arange(1, data.annotation.max()+1)
         boundary                    = get_accumulated_boundary(data.annotation[0], l, self.basemodule.angular_density)
+
+        #boundary represents the points of the ring l that are in cartesian coordinates but all of them are at the
+        # same euclidean distanse (self.basemodule.angular_density)
         for l in range(l, min(l+self.per_epoch_it, valid_rings.max()) ):
+            if debug:
+                boundary.draw(data.inputimage, f'{str(output_dir)}/boundary_{index}_{l}_0.png')
             width     = estimate_radial_range(boundary, data.segmentation.boundary)
             if width is None:
                 #fallback
@@ -51,15 +66,24 @@ class INBD_Task(TrainingTask):
             if self.basemodule.wd_det is not None:
                 w_ytrue    = torch.as_tensor(wedging_ring_target(pgrid, l))[None].float().to(device)
                 start_high = w_ytrue[...,0]
+            try:
+                ctr = True
+                y_pred    = self.basemodule.to(device).forward_from_polar_grid(pgrid, start_high=start_high)
+                y_pred, w_ypred = y_pred['x'], y_pred.get('wd_x')
+            except RuntimeError as e:
+                ctr = False
+                print(f'Error in ring {l}: {e}')
+                continue
 
-            y_pred    = self.basemodule.to(device).forward_from_polar_grid(pgrid, start_high=start_high)
-            y_pred, w_ypred    = y_pred['x'], y_pred.get('wd_x')
+
             y_true    = torch.as_tensor(create_2d_target(pgrid, l+1))[None].to(device).long()
-            
+
             #new boundary
             boundary    = self.basemodule.output_to_boundary(y_pred[0].cpu(), boundary, pgrid)
-            
+            if debug:
+                boundary.draw(data.inputimage, f'{str(output_dir)}/boundary_{index}_{l}_1.png')
             cse          = torch.nn.functional.binary_cross_entropy_with_logits(y_pred, y_true[None].float()*(1.0-self.labelsmoothing*2)+self.labelsmoothing)
+
             logs['cse']  = logs.get('cse',  [])    + [ cse ]
             
             offsets       = (y_pred[0,0] > 0).float().argmin(0)
