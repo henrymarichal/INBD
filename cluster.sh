@@ -77,8 +77,7 @@ check_command_result mkdir -p $HOME_RESULTADOS_DIR
 cd ~/repos/INBD/
 #python main.py train segmentation $HOME_DATASET_DIR/train_inputimages.txt $HOME_DATASET_DIR/train_annotations.txt --output $HOME_RESULTADOS_MODEL_DIR --epochs 300 > "$stdout_file" 2> "$stderr_file"
 #next, train the inbd network
-python main.py train INBD  $HOME_DATASET_DIR/train_inputimages.txt   $HOME_DATASET_DIR/train_annotations.txt   --segmentationmodel=$HOME_SEGMENTATION_MODEL  --output $HOME_RESULTADOS_MODEL_DIR
- > "$stdout_file" 2> "$stderr_file" #adjust path
+python main.py train INBD  $HOME_DATASET_DIR/train_inputimages.txt   $HOME_DATASET_DIR/train_annotations.txt   --segmentationmodel=$HOME_SEGMENTATION_MODEL  --output $HOME_RESULTADOS_MODEL_DIR > "$stdout_file" 2> "$stderr_file" #adjust path
 
 # -------------------------------------------------------
 #copy results to HOME
