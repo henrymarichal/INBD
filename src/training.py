@@ -33,6 +33,7 @@ class TrainingTask(torch.nn.Module):
             optimizer.zero_grad()
 
             with torch.autocast('cuda', enabled=self.amp):
+                batch += (i,)
                 loss,logs  = self.training_step(batch)
             logs['lr'] = optimizer.param_groups[0]['lr']
             
@@ -96,13 +97,29 @@ class TrainingTask(torch.nn.Module):
         cls.stop_requested = True
 
 
-
+import logging
 class PrintMetricsCallback:
     '''Prints metrics after each training epoch in a compact table'''
     def __init__(self):
         self.epoch = 0
         self.logs  = {}
-        
+        self.logger = logging.getLogger('my_logger')
+
+        # Set the level of the logger. This can be DEBUG, INFO, WARNING, ERROR, CRITICAL.
+        self.logger.setLevel(logging.DEBUG)
+
+        # Create a file handler
+        handler = logging.FileHandler('my_log.log')
+
+        # Create a formatter and add it to the handler
+        formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+        handler.setFormatter(formatter)
+
+        # Add the handler to the logger
+        self.logger.addHandler(handler)
+
+
+
     def on_epoch_end(self, epoch):
         self.epoch = epoch + 1
         self.logs  = {}
@@ -112,7 +129,9 @@ class PrintMetricsCallback:
         self.accumulate_logs(logs)
         percent     = ((batch_i+1) / n_batches)
         metrics_str = ' | '.join([f'{k}:{float(np.nanmean(v)):>9.5f}' for k,v in self.logs.items()])
-        print(f'[{self.epoch:04d}|{percent:.2f}] {metrics_str}', end='\r')
+        message = f'[{self.epoch:04d}|{percent:.2f}] {metrics_str}'
+        print(message, end='\r')
+        self.logger.debug(message)
     
     def accumulate_logs(self, newlogs):
         for k,v in newlogs.items():
