@@ -3,6 +3,7 @@ import numpy as np
 import scipy
 import skimage
 
+from src.drawing import Drawing, Color
 
 class Boundary(tp.NamedTuple):
     boundarypoints:  np.ndarray
@@ -126,13 +127,50 @@ class Boundary(tp.NamedTuple):
     def __len__(self) -> int:
         return len(self.boundarypoints)
 
+    def draw(self, image, filename):
+        '''Draw the boundary on a matplotlib axis'''
+        tensor_cpu = image.cpu()  # Move the tensor to CPU
+        tensor_cpu_detached = tensor_cpu.detach()  # Detach it from the computation graph
+        numpy_array = tensor_cpu_detached.numpy()
+        H,W = numpy_array.shape[-2:]
+        img_draw = np.zeros((H,W,3),dtype=float)
+        img_draw[:,:,2] = numpy_array[0]
+        img_draw[:,:,1] = numpy_array[1]
+        img_draw[:,:,0] = numpy_array[2]
 
-def get_accumulated_boundary(labelmap:np.ndarray, label:int, angular_density:float=5.7) -> tp.Union[Boundary, None]:
+
+        scaled_image = ( img_draw * 255 ).astype(np.uint8)
+        from shapely.geometry import Polygon
+        polygon = Polygon(self.boundarypoints.tolist())
+        scaled_image = Drawing.curve(polygon.exterior.coords, scaled_image, color=Color.red, thickness=1)
+
+        import cv2
+        cv2.imwrite(filename, scaled_image)
+
+        # bpoints  = self.boundarypoints
+        # img_draw[ bpoints[:,0].astype(int), bpoints[:,1].astype(int) ] = 1
+        # import matplotlib.pyplot as plt
+        # plt.imsave(filename, img_draw, cmap='gray')
+
+        return
+
+def save_img(img:np.ndarray, path:str):
+    import matplotlib.pyplot as plt
+    plt.imsave(path, img, cmap='gray')
+
+def get_accumulated_boundary(labelmap:np.ndarray, label:int, angular_density:float=5.7, debug=False) -> tp.Union[Boundary, None]:
     '''Compute the boundary accumulated up to the specified label. (Relevant for wedging rings)'''
     center    = np.argwhere(labelmap==1).mean(0)
+    if debug:
+        save_img(labelmap, 'label.png')
     acum_mask = np.isin(labelmap, np.arange(1, label+1) )
+    if debug:
+        save_img(acum_mask, 'acum_mask.png')
     boundary  = skimage.segmentation.find_boundaries(acum_mask, mode='outer')
     bpoints   = np.argwhere(boundary)
+    if debug:
+        save_img(boundary, 'boundary.png')
+
     if len(bpoints) == 0:
         return None
     return Boundary.from_cartesian_coordinates(bpoints, center).normalize_rotation().resample(angular_density)
