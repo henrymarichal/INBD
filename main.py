@@ -53,7 +53,7 @@ def train(args):
             'wd_lambda'      : args.wd_lambda,
             'per_epoch_it'   : args.per_epoch_it,
             'bd_augment'     : args.bd_augment,
-            #'batch_size'     : 1
+            'batch_size'     : 1
         }
     elif args.modeltype == 'MaskRCNN':
         from src import maskrcnn
@@ -78,7 +78,7 @@ def train(args):
     #otherwise might lead to inconsistencies if code changes during training
     model_destination     = os.path.join(destination, 'model')
     model_destination_tmp = model.save(model_destination+'.tmp.pt.zip')
-    model                 = util.load_model(model_destination_tmp)
+    #model                 = util.load_model(model_destination_tmp)
     #kw['num_workers']     = 0
     err = model.start_training(
         imagefiles,     annotations,
@@ -228,12 +228,12 @@ if __name__ == '__main__':
     
     parser_train.add_argument('--wd',              type=int,   default=0,    help='Wedging ring detection (WRD)')  #bool
     parser_train.add_argument('--wd_lambda',       type=float, default=0.01, help='WRD loss weight')
-    parser_train.add_argument('--radcat',          type=int,   default=1,    help='Concatenate radii as input for the INBD network')  #bool
+    parser_train.add_argument('--radcat',          type=int,   default=0,    help='Concatenate radii as input for the INBD network')  #bool
     parser_train.add_argument('--angular-density', type=float, default=6.28, help='Hyperparameter alpha')
-    parser_train.add_argument('--per_epoch_it',    type=int,   default=3,    help='Number of iterations per training epoch')
+    parser_train.add_argument('--per_epoch_it',    type=int,   default=1,    help='Number of iterations per training epoch')
     parser_train.add_argument('--bd_augment',      type=int,   default=1,    help='Boundary augmentations')
-    parser_train.add_argument('--var_ares',        type=int,   default=1,    help='Variable angular resolution')
-    parser_train.add_argument('--interpolate_ambiguous', type=int, default=1, help='Interpolate ambiguous boundary points')
+    parser_train.add_argument('--var_ares',        type=int,   default=0,    help='Variable angular resolution')
+    parser_train.add_argument('--interpolate_ambiguous', type=int, default=0, help='Interpolate ambiguous boundary points')
     
     
     parser_train.add_argument('--nms',        type=float, default=0.7,   help='Non-Max Suppression threshold (Mask-RCNN)')
