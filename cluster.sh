@@ -1,7 +1,7 @@
 #!/bin/bash
 #SBATCH --job-name=inbd
 #SBATCH --ntasks=8
-#SBATCH --mem=80G
+#SBATCH --mem=20
 #SBATCH --time=08:00:00
 #SBATCH --mail-type=ALL
 #SBATCH --tmp=100G
@@ -23,13 +23,21 @@ conda activate inbd_gpu
 #el espacio local a utilizar se reserva dcon --tmp=XXXGb
 LOCAL_NODE_DIR=/scratch/henry.marichal/
 #HOME_DATASET_DIR=~/repos/INBD/dataset/EH
-HOME_DATASET_DIR=~/datasets/inbd_4
-HOME_DATASET_DIR=~/datasets/INBD/EH
-HOME_SEGMENTATION_MODEL=~/resultados/inbd_pinus_taeda_20240203_011323/model/2024-02-03_01h13m37s_segmentation_300e_x4_/model.pt.zip
-HOME_SEGMENTATION_MODEL=~/resultados/inbd_pinus_taeda_20240205_192015/model/2024-02-05_19h20m17s_segmentation_300e_x4_/model.pt.zip
+HOME_DATASET_DIR=~/datasets/inbd_4_2
+#HOME_SEGMENTATION_MODEL=~/resultados/inbd_pinus_taeda_20240203_011323/model/2024-02-03_01h13m37s_segmentation_300e_x4_/model.pt.zip
+#HOME_SEGMENTATION_MODEL=~/resultados/inbd_pinus_taeda_20240205_192015/model/2024-02-05_19h20m17s_segmentation_300e_x4_/model.pt.zip
+HOME_SEGMENTATION_MODEL=~/repos/INBD/model/inbd_4/model.pt.zip
 HOME_RESULTADOS_DIR=~/resultados/inbd_pinus_taeda_$(date +'%Y%m%d_%H%M%S')
 HOME_RESULTADOS_MODEL_DIR=$HOME_RESULTADOS_DIR/model
 # -------------------------------------------------------
+# -------------------------------------------------------
+# -------------------------------------------------------
+COMMAND=python main.py train INBD  $HOME_DATASET_DIR/train_inputimages.txt   $HOME_DATASET_DIR/train_annotations.txt   --segmentationmodel=$HOME_SEGMENTATION_MODEL  --output $HOME_RESULTADOS_MODEL_DIR
+# -------------------------------------------------------
+# -------------------------------------------------------
+# -------------------------------------------------------
+
+
 #other variables
 #NODE_RESULTADOS_DIR=$LOCAL_NODE_DIR/inbd/resultados
 #NODE_DATASET_DIR=$LOCAL_NODE_DIR/inbd/EH
@@ -70,7 +78,7 @@ check_command_result mkdir -p $HOME_RESULTADOS_DIR
 cd ~/repos/INBD/
 #python main.py train segmentation $HOME_DATASET_DIR/train_inputimages.txt $HOME_DATASET_DIR/train_annotations.txt --output $HOME_RESULTADOS_MODEL_DIR --epochs 300 > "$stdout_file" 2> "$stderr_file"
 #next, train the inbd network
-python main.py train INBD  $HOME_DATASET_DIR/train_inputimages.txt   $HOME_DATASET_DIR/train_annotations.txt   --segmentationmodel=$HOME_SEGMENTATION_MODEL  --output $HOME_RESULTADOS_MODEL_DIR > "$stdout_file" 2> "$stderr_file" #adjust path
+$COMMAND - > "$stdout_file" 2> "$stderr_file" #adjust path
 
 # -------------------------------------------------------
 #copy results to HOME

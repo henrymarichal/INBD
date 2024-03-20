@@ -4,6 +4,7 @@ import typing as tp
 import numpy as np
 import torch, torchvision
 import PIL.Image
+from PIL import Image
 
 
 
@@ -13,6 +14,36 @@ class SegmentationOutput(tp.NamedTuple):
     ring:       np.ndarray  #instance-agnostic rings, not used
     boundary:   np.ndarray  #boundary between rings
     center:     np.ndarray  #first ring/pith
+
+    @staticmethod
+    def from_numpy_to_pil(image: np.ndarray) -> Image:
+        return Image.fromarray(image)
+
+    def save_output(self, pdf_path = "./L03.pdf",
+                    image: np.ndarray = None, ann: np.ndarray = None):
+        background = self.background
+        background -= background.min()
+        center = self.center
+        center -= center.min()
+        boundary = self.boundary
+        boundary -= boundary.min()
+
+        background = self.from_numpy_to_pil(background).convert("L")
+        center = self.from_numpy_to_pil(center).convert("L")
+        boundary = self.from_numpy_to_pil(boundary).convert("L")
+
+        img = self.from_numpy_to_pil(image)
+        # resize image to background shape
+        img = img.resize(background.shape[::-1])
+
+        ann = self.from_numpy_to_pil(ann - ann.min()).convert("L")
+        images = [img, ann, boundary, background, center]
+
+        # generate pdf
+        images[0].save(pdf_path, save_all=True, append_images=images[1:], quality=100)
+
+        return
+
 
 CLASSES = dict([ (k,i) for i,k in enumerate(SegmentationOutput._fields) ])
 
