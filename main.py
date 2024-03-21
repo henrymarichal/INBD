@@ -31,7 +31,7 @@ def train(args):
         kw     = {'scales':[args.downsample*0.8, args.downsample*1.5]}
     elif args.modeltype == 'INBD':
         assert os.path.exists(args.segmentationmodel)
-        segmentationmodel = util.load_segmentationmodel(args.segmentationmodel)
+        segmentationmodel = util.load_segmentationmodel(args.segmentationmodel).cuda()
         from src import INBD
 
         # Your training code here
