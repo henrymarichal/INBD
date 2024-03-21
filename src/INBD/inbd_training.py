@@ -139,7 +139,6 @@ class INBD_Task(TrainingTask):
         return rc
     
     def train_one_epoch(self, ds_train:INBD_Dataset, *a, **kw):
-        self.amp = False
         with torch.autocast('cuda', enabled=self.amp):
             ds_train.load_and_cache_dataset(self.basemodule.segmentationmodel[0].cuda())
         self.basemodule.segmentationmodel[0].cpu()
