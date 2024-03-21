@@ -222,7 +222,7 @@ if __name__ == '__main__':
     parser_train.add_argument('--validation_annotations', type=str, help='Path to a text file containing paths to validation annotations')
     parser_train.add_argument('--segmentationmodel',      type=str, help='Path to pretrained segmentation model (INBD only)')
     parser_train.add_argument('--epochs',          type=int,   default=100, help='Number of training epochs')
-    parser_train.add_argument('--downsample',      type=float, default=4,   help='Resolution downsampling factor')
+    parser_train.add_argument('--downsample',      type=float, default=0,   help='Resolution downsampling factor')
     parser_train.add_argument('--size',            type=int,   default=512, help='Resolution for the cartesian model')
     parser_train.add_argument('--backbone',        type=str,   default='mobilenet3l',  help='UNet backbone')
     
@@ -231,8 +231,8 @@ if __name__ == '__main__':
     parser_train.add_argument('--radcat',          type=int,   default=0,    help='Concatenate radii as input for the INBD network')  #bool
     parser_train.add_argument('--angular-density', type=float, default=6.28, help='Hyperparameter alpha')
     parser_train.add_argument('--per_epoch_it',    type=int,   default=1,    help='Number of iterations per training epoch')
-    parser_train.add_argument('--bd_augment',      type=int,   default=1,    help='Boundary augmentations')
-    parser_train.add_argument('--var_ares',        type=int,   default=0,    help='Variable angular resolution')
+    parser_train.add_argument('--bd_augment',      type=int,   default=0,    help='Boundary augmentations')
+    parser_train.add_argument('--var_ares',        type=int,   default=1,    help='Variable angular resolution')
     parser_train.add_argument('--interpolate_ambiguous', type=int, default=0, help='Interpolate ambiguous boundary points')
     
     
@@ -240,7 +240,7 @@ if __name__ == '__main__':
     parser_train.add_argument('--mrcnn_acc',  type=int,   default=0,     help='Mask-RCNN: accumulate rings (filled mode)')
 
     parser_train.add_argument('--lr',         type=float, default=1e-3,  help='Learning rate')
-    parser_train.add_argument('--amp',        type=bool,  default=True,  help='Mixed precision training')
+    parser_train.add_argument('--amp',        type=bool,  default=False,  help='Mixed precision training')
     parser_train.add_argument('--val_freq',   type=int,   default=1,     help='Validation frequency (epochs)')
 
     parser_train.add_argument('--output',     type=str,   default='checkpoints/',   help='Output directory')
