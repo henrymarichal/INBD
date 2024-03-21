@@ -31,7 +31,7 @@ class INBD_Task(TrainingTask):
         data, l, index = batch
         if debug:
             from pathlib import Path
-
+            from src.drawing import Drawing
             output_dir = Path('./output')
             if not output_dir.exists():
                 output_dir.mkdir(exist_ok=True, parents=True)
@@ -61,13 +61,21 @@ class INBD_Task(TrainingTask):
                 width     = augment_width(width)
             
             pgrid     = PolarGrid.construct(data.inputimage, data.segmentation, data.annotation, boundary, width, self.basemodule.concat_radii, device=device)
-            
+            if debug:
+                image = pgrid.image
+                segmented = pgrid.segmentation
+                annotation = pgrid.annotation
+
+                output_image_file = f'{str(output_dir)}/pgrid_image_{index}_{l}_0.png'
+                Drawing.save_tensor_image(image, output_image_file)
+                #output_segmented_file = f'{str(output_dir)}/pgrid_segmented_{index}_{l}_0.png'
+                #Drawing.save_tensor_image(segmented, output_segmented_file)
+
             start_high = False
             if self.basemodule.wd_det is not None:
                 w_ytrue    = torch.as_tensor(wedging_ring_target(pgrid, l))[None].float().to(device)
                 start_high = w_ytrue[...,0]
             try:
-                ctr = True
                 y_pred    = self.basemodule.to(device).forward_from_polar_grid(pgrid, start_high=start_high)
                 y_pred, w_ypred = y_pred['x'], y_pred.get('wd_x')
             except RuntimeError as e:

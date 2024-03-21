@@ -114,3 +114,19 @@ class Drawing:
         image = cv2.line(img, start_point, end_point, color, thickness)
 
         return image
+
+    @staticmethod
+    def save_tensor_image(tensor, path):
+        '''Draw the boundary on a matplotlib axis'''
+        tensor_cpu = tensor.cpu()  # Move the tensor to CPU
+        tensor_cpu_detached = tensor_cpu.detach()  # Detach it from the computation graph
+        numpy_array = tensor_cpu_detached.numpy()
+        H, W = numpy_array.shape[-2:]
+        img_draw = np.zeros((H, W, 3), dtype=float)
+        img_draw[:, :, 2] = numpy_array[0]
+        img_draw[:, :, 1] = numpy_array[1]
+        img_draw[:, :, 0] = numpy_array[2]
+
+        scaled_image = (img_draw * 255).astype(np.uint8)
+        cv2.imwrite(path, scaled_image)
+
