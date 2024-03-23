@@ -53,7 +53,7 @@ def train(args):
             'wd_lambda'      : args.wd_lambda,
             'per_epoch_it'   : args.per_epoch_it,
             'bd_augment'     : args.bd_augment,
-            'batch_size'     : 1
+            #'batch_size'     : 1
         }
     elif args.modeltype == 'MaskRCNN':
         from src import maskrcnn
