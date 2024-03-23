@@ -21,7 +21,7 @@ class TrainingTask(torch.nn.Module):
     
     def configure_optimizers(self):
         optim = torch.optim.AdamW(self.parameters(), lr=self.lr, weight_decay=1e-4)
-        sched = torch.optim.lr_scheduler.CosineAnnealingLR(optim, self.epochs, eta_min=self.lr/100)
+        sched = None# torch.optim.lr_scheduler.CosineAnnealingLR(optim, self.epochs, eta_min=self.lr/100)
         return optim, sched
     
     @property
