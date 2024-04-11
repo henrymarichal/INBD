@@ -35,9 +35,7 @@ class INBD_Task(TrainingTask):
             output_dir = Path('./output')
             if not output_dir.exists():
                 output_dir.mkdir(exist_ok=True, parents=True)
-            # else:
-            #     #remove all files
-            #     os.system(f'rm -r {str(output_dir)}/*')
+
 
         logs:tp.Dict[str, tp.Any]   = {}
 

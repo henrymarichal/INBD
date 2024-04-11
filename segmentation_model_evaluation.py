@@ -9,20 +9,22 @@ from src import (util)
 def from_numpy_to_pil(image: np.ndarray) -> Image:
     return Image.fromarray(image)
 
-def main(model_path="~/Documents/repo/fing/INBD/models/segmentation/inbd_4/model.pt.zip",
+def main(model_path="/home/henry/Documents/repo/fing/INBD/models/segmentation/inbd_4/model.pt.zip",
          dataset_dir="/data/maestria/datasets/Pinus_Taeda/PinusTaedaV3/images/segmented/"):
 
+    dataset_dir = "/data/maestria/resultados/inbd_reproduction"
     image_path = "/data/maestria/resultados/inbd_4/InputImages/L03e.png"
     image_path = "/data/maestria/datasets/Pinus_Taeda/PinusTaedaV3/images/segmented/C17-2.jpg"
     image_path = "/data/maestria/datasets/gleditsia_triacanthos/images/segmented/20230504_194426_zoom_in.jpg"
     image_path = "/data/maestria/datasets/TreeTrace_Douglas_format/discs_zoom_in/images/segmented/A07d.jpeg"
     image_path = "/data/maestria/datasets/INBD/EH/inputimages/EH_0055.jpg"
-    segmentationmodel = util.load_segmentationmodel(model_path)
+    segmentationmodel = util.load_segmentationmodel(model_path).cuda()
+
 
     background_list, center_list, boundary_list, image_list = [], [], [], []
     for image_path in Path(dataset_dir).rglob("*.jpg"):
 
-        output = segmentationmodel.process_image(str(image_path), upscale_result=False)
+        output = segmentationmodel.process_image(str(image_path), downscale=segmentationmodel.scale, upscale_result=False)
         background = output.background
         background -= background.min()
         center = output.center

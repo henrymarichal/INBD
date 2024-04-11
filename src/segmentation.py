@@ -72,7 +72,7 @@ class SegmentationModel(models.UNet):
 
 class SegmentationTask(training.TrainingTask):
     def training_step(self, batch:tp.Tuple[torch.Tensor, torch.Tensor]):
-        x,ytrue = batch
+        x,ytrue, index = batch
         assert len(ytrue.shape) == 4 and ytrue.shape[1] == len(CLASSES)
         x,ytrue = x.to(self.device), ytrue.to(self.device)
         
