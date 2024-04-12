@@ -28,7 +28,7 @@ def train(args):
             backbone           = args.backbone,
             downsample_factor  = args.downsample,
         )
-        kw     = {'scales':[args.downsample*0.8, args.downsample*1.5]}
+        kw     = {'scales':[args.downsample*0.8, args.downsample*1.5],'batch_size'     : 1}
     elif args.modeltype == 'INBD':
         assert os.path.exists(args.segmentationmodel)
         segmentationmodel = util.load_segmentationmodel(args.segmentationmodel).cuda()
@@ -53,7 +53,7 @@ def train(args):
             'wd_lambda'      : args.wd_lambda,
             'per_epoch_it'   : args.per_epoch_it,
             'bd_augment'     : args.bd_augment,
-            #'batch_size'     : 1
+            'batch_size'     : 1
         }
     elif args.modeltype == 'MaskRCNN':
         from src import maskrcnn
