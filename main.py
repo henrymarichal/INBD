@@ -129,7 +129,7 @@ def inference(args):
         print(f'[{i:4d}/{len(imagefiles)}] {os.path.basename(f)}', end='\r')
         upscale = (not args.seg)
         try:
-            output  = model.process_image(f, upscale_result=upscale)
+            output  = model.process_image(f, max_n= 100, upscale_result=upscale)
         except Exception as e:
             print(f'Could not process image {os.path.basename(f)}: {e}')
             continue

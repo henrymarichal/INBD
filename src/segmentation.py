@@ -20,28 +20,33 @@ class SegmentationOutput(tp.NamedTuple):
         return Image.fromarray(image)
 
     def save_output(self, pdf_path = "./L03.pdf",
-                    image: np.ndarray = None, ann: np.ndarray = None):
+                    img = None, ann: np.ndarray = None):
+        print(f"Saving output to {pdf_path}")
         background = self.background
         background -= background.min()
         center = self.center
         center -= center.min()
         boundary = self.boundary
         boundary -= boundary.min()
-
+        shape = background.shape[::-1]
         background = self.from_numpy_to_pil(background).convert("L")
         center = self.from_numpy_to_pil(center).convert("L")
         boundary = self.from_numpy_to_pil(boundary).convert("L")
-
-        img = self.from_numpy_to_pil(image)
+        #print(img)
+        #print image shape
+        #print(img.shape)
+        #img = self.from_numpy_to_pil(image)
+        #print image shape
+        #print(img.size)
         # resize image to background shape
-        img = img.resize(background.shape[::-1])
+        img = img.resize(shape)
 
         ann = self.from_numpy_to_pil(ann - ann.min()).convert("L")
+        ann = ann.resize(shape)
         images = [img, ann, boundary, background, center]
-
         # generate pdf
         images[0].save(pdf_path, save_all=True, append_images=images[1:], quality=100)
-
+        print(f"Output saved to {pdf_path}")
         return
 
 

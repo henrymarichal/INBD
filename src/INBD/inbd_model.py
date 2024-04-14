@@ -102,11 +102,44 @@ class INBD_Model(UNet):
             boundary     = boundary.resample(self.angular_density)
         return boundary
     
-    def process_image(self, x:tp.Union[str, SegmentationOutput], max_n=100, upscale_result=False, ) -> INBD_Output:
+    def process_image(self, x:tp.Union[str, SegmentationOutput], max_n=100, upscale_result=False, debug=False) -> INBD_Output:
+        from src.drawing import  Drawing
         if isinstance(x, str):
+            from pathlib import Path
+
+            from src.datasets import load_instanced_annotation
             imagefile  = x
             output     = self.segmentationmodel[0].process_image(imagefile, upscale_result=False)
+            debug_directory =  Path(imagefile).parent.parent / "debug"
+            debug_directory.mkdir(exist_ok=True, parents=True)
+
             x          = self.segmentationmodel[0].load_image(imagefile)
+            #print(x)
+            annotation_path = Path(imagefile).parent.parent / 'annotations' / Path(imagefile).name.replace('.jpg', '.tiff')
+
+            annotation = load_instanced_annotation(str(annotation_path))
+            centermask = np.zeros((annotation.shape[0], annotation.shape[1]), dtype=bool)
+            centermask[annotation == 1] = True
+            #reshape to x shape
+            centermask = skimage.transform.resize(centermask, x.shape[:2], order=0)
+
+            #apply dilation operation on centermask
+            num_iterations = 5
+            for _ in range(num_iterations):
+                centermask = skimage.morphology.binary_dilation(centermask, selem=skimage.morphology.disk(5), )
+            #open image with opencv
+            import cv2
+            image = cv2.imread(imagefile)
+            #image = PIL.Image.open(imagefile)
+            #convert to Image PIL
+            image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
+            #print(np.unique(x) )
+            shape = x.shape[-2:]
+            image = PIL.Image.fromarray(image)
+            debug_segmented_file = debug_directory / Path(imagefile).name.replace('.jpg', '_segmented.pdf')
+            output.save_output(debug_segmented_file, img=image, ann = annotation)
+
+
         elif isinstance(x, SegmentationOutput):
             output     = x
             raise NotImplementedError('Need imagefile')
@@ -114,21 +147,46 @@ class INBD_Model(UNet):
         scale      = self.segmentationmodel[0].scale
         x          = torchvision.transforms.ToTensor()( x )
         x          = torch.nn.functional.interpolate(x[None], scale_factor=1/scale)[0]
-        centermask = (output.center > 0)
+        shape = output.center.shape
+        #reshape centermask
+        centermask = skimage.transform.resize(centermask,shape, order=0)
+        #centermask = (output.center > 0)
 
+        #print(x.shape)
+        #print(centermask.shape)
         all_boundaries = []
         all_pgrids     = []
         boundary       = detected_center_to_boundary( centermask, convex=True, angular_density=self.angular_density ) #smooth, using as starting point
+        #print(output.boundary.shape)
         if boundary is not None:
             all_boundaries = [detected_center_to_boundary( centermask, convex=False, angular_density=None )] #more accurate
             for i in range(max_n):
-                width       = estimate_radial_range(boundary, output.boundary)
+
+                #width       = estimate_radial_range(boundary, output.boundary)
+                width = output.boundary.shape[1] / 4
+                #width = 50 if width is not None else width #np.minimum(width, 100)
+
                 if width in [0, None]:
                     break
                 pgrid       = PolarGrid.construct(x, output, None, boundary, width, self.concat_radii)
+                #check if pgrid has more than 75 pixel as white
+                #print(pgrid.image.shape)
+                total_pixels = pgrid.image.shape[1] * pgrid.image.shape[2]
+                #print(pgrid.image == 1)
+                sum_pixels_white = (pgrid.image == 1).sum() / 3
+                #print(f"i: {i}, width: {width} total_pixels: {total_pixels*0.75}  {sum_pixels_white}")
+                if sum_pixels_white > total_pixels*0.75:
+                    break
+                if debug:
+                    image = pgrid.image
+                    segmented = pgrid.segmentation
+                    annotation = pgrid.annotation
+                    output_image_file = f'{str(debug_directory)}/pgrid_image_{i}_0.png'
+                    Drawing.save_tensor_image(image, output_image_file)
                 y_pred      = self.forward_from_polar_grid(pgrid)
                 y_pred      = y_pred['x']
                 boundary    = self.output_to_boundary(y_pred[0].cpu(), boundary, pgrid)
+
                 all_boundaries.append(boundary)
                 all_pgrids.append(pgrid)
         #TODO: scale boundaries
@@ -138,6 +196,7 @@ class INBD_Model(UNet):
         labelmap = util.filter_labelmap(labelmap, threshold=0.001)
         #after filtering remove corresponding boundaries
         all_boundaries = [all_boundaries[i-1] for i in np.unique(labelmap) if i!=0]
+
         return INBD_Output(labelmap, all_boundaries, all_pgrids)
 
     def start_training(self, *a, **kw):

@@ -48,9 +48,9 @@ class INBD_Task(TrainingTask):
             if debug:
                 boundary.draw(data.inputimage, f'{str(output_dir)}/boundary_{index}_{l}_0.png')
             width     = estimate_radial_range(boundary, data.segmentation.boundary)
-            if width is None:
+            #if width is None:
                 #fallback
-                width     = data.segmentation.boundary.shape[1] / 4
+            width     = data.segmentation.boundary.shape[1] / 4
             
             if self.bd_augment:
                 boundary  = augment_boundary_offset(boundary) #must come after width estimation
