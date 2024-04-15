@@ -124,7 +124,7 @@ class INBD_Model(UNet):
             centermask = skimage.transform.resize(centermask, x.shape[:2], order=0)
 
             #apply dilation operation on centermask
-            num_iterations = 5
+            num_iterations = 0
             for _ in range(num_iterations):
                 centermask = skimage.morphology.binary_dilation(centermask, selem=skimage.morphology.disk(5), )
             #open image with opencv
