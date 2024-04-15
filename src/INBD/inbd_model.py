@@ -158,12 +158,13 @@ class INBD_Model(UNet):
         all_pgrids     = []
         boundary       = detected_center_to_boundary( centermask, convex=True, angular_density=self.angular_density ) #smooth, using as starting point
         #print(output.boundary.shape)
+        background_threshold = 0.95
         if boundary is not None:
             all_boundaries = [detected_center_to_boundary( centermask, convex=False, angular_density=None )] #more accurate
             for i in range(max_n):
 
                 #width       = estimate_radial_range(boundary, output.boundary)
-                width = output.boundary.shape[1] / 4
+                width = output.boundary.shape[1] / 6
                 #width = 50 if width is not None else width #np.minimum(width, 100)
 
                 if width in [0, None]:
@@ -175,7 +176,7 @@ class INBD_Model(UNet):
                 #print(pgrid.image == 1)
                 sum_pixels_white = (pgrid.image == 1).sum() / 3
                 #print(f"i: {i}, width: {width} total_pixels: {total_pixels*0.75}  {sum_pixels_white}")
-                if sum_pixels_white > total_pixels*0.75:
+                if sum_pixels_white > total_pixels*background_threshold:
                     break
                 if debug:
                     image = pgrid.image
