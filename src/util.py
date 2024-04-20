@@ -92,3 +92,68 @@ def labelmap_to_areas_output(labelmap:np.ndarray) -> str:
     for l,c in zip(labels, counts):
         output += f'{l}, {c}\n'
     return output
+
+from PIL import Image
+def resize_image_using_pil_lib(im_in: np.array, height_output: object, width_output: object) -> np.ndarray:
+    """
+    Resize image using PIL library.
+    @param im_in: input image
+    @param height_output: output image height_output
+    @param width_output: output image width_output
+    @return: matrix with the resized image
+    """
+
+    pil_img = Image.fromarray(im_in)
+    # Image.ANTIALIAS is deprecated, PIL recommends using Reampling.LANCZOS
+    #flag = Image.ANTIALIAS
+    flag = Image.Resampling.LANCZOS
+    pil_img = pil_img.resize((height_output, width_output), flag)
+    im_r = np.array(pil_img)
+    return im_r
+
+
+def polygon_2_labelme_json(chain_list, image_height, image_width, cy, cx, img_orig, image_path,
+                         exec_time):
+    """
+    Converting ch_i list object to labelme format. This format is used to store the coordinates of the rings at the image
+    original resolution
+    @param chain_list: ch_i list
+    @param image_path: image input path
+    @param image_height: image hegith
+    @param image_width: image width_output
+    @param img_orig: input image
+    @param exec_time: method execution time
+    @param cy: pith y's coordinate
+    @param cx: pith x's coordinate
+    @return:
+    - labelme_json: json in labelme format. Ring coordinates are stored here.
+    """
+    init_height, init_width, _ = img_orig.shape
+
+
+
+    width_cte = init_width / image_width if image_width is not 0 else 1
+    height_cte = init_height / image_height if image_height is not 0 else 1
+    labelme_json = {"imagePath":image_path, "imageHeight":None,
+                    "imageWidth":None, "version":"5.0.1",
+                    "flags":{},"shapes":[],"imageData": None, 'exec_time(s)':exec_time,'center':[cy*height_cte, cx*width_cte]}
+    for idx, polygon in enumerate(chain_list):
+
+        ring = {"label":str(idx+1)}
+        ring["points"] = polygon.tolist()
+        ring["shape_type"]="polygon"
+        ring["flags"]={}
+        labelme_json["shapes"].append(ring)
+
+    return labelme_json
+
+import json
+def write_json(dict_to_save: dict, filepath: str) -> None:
+    """
+    Write dictionary to disk
+    :param dict_to_save: serializable dictionary to save
+    :param filepath: path where to save
+    :return: void
+    """
+    with open(str(filepath), 'w') as f:
+        json.dump(dict_to_save, f)

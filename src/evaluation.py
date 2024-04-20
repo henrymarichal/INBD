@@ -1,3 +1,4 @@
+import cv2
 import numpy as np
 import scipy.optimize
 import warnings, typing as tp
@@ -96,9 +97,11 @@ def compute_ARAND(result:np.ndarray, annotation:np.ndarray) -> float:
     ARAND      = skimage.metrics.adapted_rand_error(annotation, result, ignore_labels=[0])[0]
     return ARAND
 
-def evaluate_single_result_from_files_at_iou_levels(resultfile:str, annotationfile:str, iou_levels=np.arange(0.50, 1.00, 0.05) ) -> tp.Dict[tp.Any, dict]:
+from src.util import polygon_2_labelme_json, write_json
+def evaluate_single_result_from_files_at_iou_levels(resultfile:str, annotationfile:str, iou_levels=np.arange(0.50, 1.00, 0.05), convert2cstrdmetric=True , debug=True) -> tp.Dict[tp.Any, dict]:
     import skimage
     from . import INBD
+    from pathlib import Path
     labelmap_annotation = datasets.load_instanced_annotation(annotationfile, downscale=1)
     labelmap_annotation = INBD.remove_boundary_class(labelmap_annotation)
     labelmap_result     = np.load(resultfile)
@@ -106,6 +109,56 @@ def evaluate_single_result_from_files_at_iou_levels(resultfile:str, annotationfi
         labelmap_result = skimage.transform.resize(labelmap_result, labelmap_annotation.shape, order=0)
     metrics_per_iou             = evaluate_single_result_at_iou_levels(labelmap_result, labelmap_annotation, iou_levels)
     metrics_per_iou['ARAND']    = compute_ARAND(labelmap_result, labelmap_annotation)
+
+
+    if convert2cstrdmetric:
+        image_path = Path(annotationfile).parent.parent / "InputImages" / f"{Path(annotationfile).stem}.jpg"
+        image_orig = cv2.imread(str(image_path))
+        if debug:
+            image_debug = image_orig.copy()
+        classes_values = np.unique(labelmap_result)
+        #remove background
+        classes_values = classes_values[classes_values > 0]
+        polygon_list = []
+        for ci in classes_values:
+            debug_mask = np.zeros_like(labelmap_result)
+            debug_mask[labelmap_result == ci] = 255
+
+
+            #compute external contour in the mask
+            contours, _ = cv2.findContours((debug_mask == 255).astype(np.uint8), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+            if len(contours) == 0:
+                continue
+
+            if debug:
+                # draw the contour
+                #H, W = labelmap_result.shape
+                #contour_image = np.zeros((H, W, 3))
+                #contour_image[:, :, 0] = debug_mask
+                #contour_image[:, :, 1] = debug_mask
+                #contour_image[:, :, 2] = debug_mask
+
+                cv2.drawContours(image_debug, contours, -1, (0, 255, 0), 3)
+                debug_mask_path = resultfile.replace('.npy', f'_debugmask_{ci}.png')
+                #cv2.imwrite(debug_mask_path, contour_image)
+
+
+            polygon_list.append(contours[0].squeeze())
+
+
+
+        labelme_json = polygon_2_labelme_json(polygon_list, labelmap_result.shape[0], labelmap_result.shape[1], 0, 0, image_orig, str(image_path), -1)
+        image_name = Path(annotationfile).stem
+        json_path = Path(resultfile).parent / f'{image_name}.json'
+        write_json(labelme_json, str(json_path) )
+
+        if debug:
+            cv2.imwrite(str(json_path).replace('.json','_debug.png'), image_debug)
+
+
+
+
+
     return metrics_per_iou
 
 def evaluate_resultfiles(resultfiles:tp.List[str], annotationfiles:tp.List[str]):
