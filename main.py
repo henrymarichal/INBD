@@ -4,6 +4,9 @@ import warnings; warnings.simplefilter('ignore')  #pytorch is too noisy
 import torch
 from src import util
 
+import PIL.Image
+PIL.Image.MAX_IMAGE_PIXELS = 300189952
+
 def train(args):
     '''Main training entry point'''
     imagefiles, annotations = util.read_splitfiles(
@@ -117,6 +120,8 @@ def inference(args):
 
     assert os.path.exists(args.model)
     model      = util.load_model(args.model).eval().requires_grad_(False)
+    model = instantiate_model_for_debug(model)
+
     if torch.cuda.is_available():
         model.cuda()
 
@@ -176,6 +181,27 @@ def evaluate(args):
     json.dump(metrics, open(os.path.join(args.outputs, 'metrics.json' ), 'w') )
     pickle.dump( metrics_raw, open(os.path.join(args.outputs, 'metrics.pkl' ), 'wb') )
 
+def instantiate_model_for_debug(model):
+    from src import INBD, segmentation
+    segmodel = model.segmentationmodel[0]
+    new_segmodel = segmentation.SegmentationModel(
+        backbone=segmodel.backbone_name,
+        downsample_factor=segmodel.scale,
+    )
+    new_segmodel.load_state_dict(segmodel.state_dict())
+
+    new_model = INBD.INBD_Model(
+        new_segmodel,
+        backbone=model.backbone_name,
+        wedging_rings=model.wd_det is not None,
+        angular_density=model.angular_density,
+        concat_radii=model.concat_radii,
+        var_ares=model.var_ares,
+        interpolate_ambiguous=getattr(model, 'interpolate_ambiguous', True),  # legacy
+    )
+
+    new_model.load_state_dict(model.state_dict())
+    return new_model
 
 def update(args):
     '''Update a saved INBD model with new source code'''
