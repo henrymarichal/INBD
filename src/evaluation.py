@@ -98,7 +98,9 @@ def compute_ARAND(result:np.ndarray, annotation:np.ndarray) -> float:
     return ARAND
 
 from src.util import polygon_2_labelme_json, write_json
-def evaluate_single_result_from_files_at_iou_levels(resultfile:str, annotationfile:str, iou_levels=np.arange(0.50, 1.00, 0.05), convert2cstrdmetric=True , debug=True) -> tp.Dict[tp.Any, dict]:
+def evaluate_single_result_from_files_at_iou_levels(resultfile:str, annotationfile:str,
+                            iou_levels=np.arange(0.50, 1.00, 0.05), convert2cstrdmetric=True,
+                            debug=True) -> tp.Dict[tp.Any, dict]:
     import skimage
     from . import INBD
     from pathlib import Path
@@ -153,7 +155,9 @@ def evaluate_single_result_from_files_at_iou_levels(resultfile:str, annotationfi
         write_json(labelme_json, str(json_path) )
 
         if debug:
-            cv2.imwrite(str(json_path).replace('.json','_debug.png'), image_debug)
+            json_debug_path  = str(json_path).replace('.json','_debug.png')
+            print(json_debug_path)
+            cv2.imwrite(json_debug_path, image_debug)
 
 
 
