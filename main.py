@@ -119,18 +119,25 @@ def inference(args):
     print(f'Running inference on {len(imagefiles)} files')
 
     assert os.path.exists(args.model)
-    model      = util.load_model(args.model).eval().requires_grad_(False)
-    model = instantiate_model_for_debug(model)
 
-    if torch.cuda.is_available():
-        model.cuda()
+
+    #if torch.cuda.is_available():
+    #    model.cuda()
 
     modelbasename = args.model.split('/')[-2]
     outputdir     = os.path.join(args.output, f'{modelbasename}_{args.suffix}' )
     os.makedirs(outputdir, exist_ok=True)
     print(f'Saving outputs to: {outputdir}')
-
+    from pathlib import Path
+    df_exec_time = []
     for i,f in enumerate(imagefiles):
+        disk_name = Path(f).stem
+        # if disk_name not in ["F03c"]:
+        #     continue
+        model = util.load_model(args.model).eval().requires_grad_(False)
+        model = instantiate_model_for_debug(model)
+
+        to = time.time()
         print(f'[{i:4d}/{len(imagefiles)}] {os.path.basename(f)}', end='\r')
         upscale = (not args.seg)
         try:
@@ -163,7 +170,19 @@ def inference(args):
 
             boundaries_normed = np.tanh(output.boundary)/2+0.5
             PIL.Image.fromarray((boundaries_normed*255).astype('uint8')).save(outf+'.segmentation.png')
+        tf = time.time()
+
+        print(f"{disk_name} - exec time {tf-to:.2f} s")
+        df_exec_time.append([disk_name, tf-to])
+
+        del model
+        #free gpu memory
+        torch.cuda.empty_cache()
+
     print()
+    import pandas as pd
+    df_exec_time = pd.DataFrame(df_exec_time, columns=['disk_name', 'exec_time'])
+    df_exec_time.to_csv(os.path.join(outputdir, 'exec_time.csv'), index=False)
 
 
 
@@ -186,10 +205,13 @@ def instantiate_model_for_debug(model):
     segmodel = model.segmentationmodel[0]
     new_segmodel = segmentation.SegmentationModel(
         backbone=segmodel.backbone_name,
-        downsample_factor=segmodel.scale,
+        downsample_factor=segmodel.scale
     )
+    #device cpu
+    device = torch.device('cpu')
+    #device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     new_segmodel.load_state_dict(segmodel.state_dict())
-
+    new_segmodel.to(device)
     new_model = INBD.INBD_Model(
         new_segmodel,
         backbone=model.backbone_name,
@@ -201,6 +223,10 @@ def instantiate_model_for_debug(model):
     )
 
     new_model.load_state_dict(model.state_dict())
+    new_model.to(device)
+    del model
+    #free gpu memory
+    torch.cuda.empty_cache()
     return new_model
 
 def update(args):

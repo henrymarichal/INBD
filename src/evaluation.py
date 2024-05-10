@@ -157,6 +157,8 @@ def evaluate_single_result_from_files_at_iou_levels(resultfile:str, annotationfi
         if debug:
             json_debug_path  = str(json_path).replace('.json','_debug.png')
             print(json_debug_path)
+            #write image name in image_debug
+            cv2.putText(image_debug, image_name, (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2)
             cv2.imwrite(json_debug_path, image_debug)
 
 
