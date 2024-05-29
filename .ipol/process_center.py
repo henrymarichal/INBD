@@ -22,7 +22,8 @@ def mannually(filename, img_path, output_img):
     #save mask
     cv2.imwrite(output_img, mask)
     print(output_img)
-
+    os.system("ls -lah .")
+    raise
     return
 
 if __name__=="__main__":
