@@ -4,8 +4,11 @@ import cv2
 
 def mannually(filename):
     import os
-    os.system("ls -lah .")
-    #raise
+    #open txt with pandas
+    import pandas as pd
+    df = pd.read_csv(filename, header=None)
+    print(df)
+    raise
     return
 
 if __name__=="__main__":
