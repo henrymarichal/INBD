@@ -5,7 +5,7 @@ import cv2
 def mannually(filename):
     import os
     os.system("ls -lah .")
-    raise
+    #raise
     return
 
 if __name__=="__main__":
