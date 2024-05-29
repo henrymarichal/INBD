@@ -13,6 +13,10 @@ CVPR 2023. [Paper link](https://openaccess.thecvf.com/content/CVPR2023/html/Gill
 
 Python version: `3.7`. Other versions are known to cause issues.
 
+```bash 
+python main.py inference models/model.pt.zip assets/F02c.png assets/F02c_mask.png --output $HOME/output/
+```
+
 ```bash
 #setup virtualenv
 python -m venv venv
