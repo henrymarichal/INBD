@@ -17,3 +17,5 @@ coverage==6.5.0
 opencv-python==4.8.1.78
 opencv-contrib-python-headless==4.8.1.78
 pandas
+shapely == 1.7
+pathlib == 1.0.1
