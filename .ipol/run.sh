@@ -11,8 +11,8 @@ python $BIN/.ipol/process_center.py --input inpainting_data_0.txt
 
 if [ -s inpainting_data_0.txt ]; then
   # File is not empty
-  stdout=$(python $BIN/.ipol/process_center.py --input inpainting_data_0.txt --type 0)
-  rm inpainting_data_0.txt
+  stdout=$(python $BIN/.ipol/process_center.py --input inpainting_data_0.txt)
+  #rm inpainting_data_0.txt
 fi
 #else
 #  # File is  empty
