@@ -188,6 +188,7 @@ def inference(args):
         torch.cuda.empty_cache()
 
     print()
+    raise
     #import pandas as pd
     #df_exec_time = pd.DataFrame(df_exec_time, columns=['disk_name', 'exec_time'])
     #df_exec_time.to_csv(os.path.join(outputdir, 'exec_time.csv'), index=False)
