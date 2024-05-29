@@ -55,7 +55,7 @@ class INBD_Dataset:
             self.trainstepdata += [ TrainstepData(image, output, ann) ]
 
         self.img_ring_combos = np.concatenate([
-            list(zip(np.ones(1000, int)*i, np.unique( inp.annotation )[1:-1])) for i,inp in enumerate(self.trainstepdata)
+            list( zip(np.ones(1000, int)*i , np.unique( inp.annotation )[1:-1])) for i,inp in enumerate(self.trainstepdata)
         ])
     
     def __len__(self):

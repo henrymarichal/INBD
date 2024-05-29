@@ -28,7 +28,7 @@ class TrainingTask(torch.nn.Module):
     def device(self):
         return next(self.parameters()).device
     
-    def train_one_epoch(self, loader, optimizer, scaler, scheduler=None):
+    def train_one_epoch(self, loader, optimizer, scaler, scheduler=None, width=None):
         for i,batch in enumerate(loader):
             optimizer.zero_grad()
             with torch.autocast('cuda', enabled=self.amp):

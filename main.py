@@ -1,5 +1,9 @@
 import argparse, sys, os, time, glob
-import warnings; warnings.simplefilter('ignore')  #pytorch is too noisy
+import warnings;
+
+import cv2
+
+warnings.simplefilter('ignore')  #pytorch is too noisy
 
 import torch
 from src import util
@@ -111,11 +115,15 @@ def inference(args):
 
     if args.images.lower().endswith('.txt'):
         imagefiles = util.read_splitfile(args.images)
-    elif args.images.lower().endswith('.jpg') or args.images.lower().endswith('.jpeg'):
+    elif ( args.images.lower().endswith('.jpg') or args.images.lower().endswith('.jpeg')):
         imagefiles = [args.images]
     else:
-        print(f'[ERROR] unknown file type: {args.images}')
-        return
+        print(f'[ERROR] unknown file type: {args.images}. Converting to jpg')
+        img = cv2.imread(args.images)
+        #convert to .jpg
+        cv2.imwrite(args.images.replace(".png", ".jpg"), img)
+        imagefiles = [args.images.replace(".png", ".jpg")]
+        #return
     print(f'Running inference on {len(imagefiles)} files')
 
     assert os.path.exists(args.model)
@@ -141,7 +149,7 @@ def inference(args):
         print(f'[{i:4d}/{len(imagefiles)}] {os.path.basename(f)}', end='\r')
         upscale = (not args.seg)
         try:
-            output  = model.process_image(f, max_n= 100, upscale_result=upscale)
+            output  = model.process_image(f, max_n= 100, upscale_result=upscale, annotation_path=args.annotation_path)
         except Exception as e:
             print(f'Could not process image {os.path.basename(f)}: {e}')
             continue
@@ -180,9 +188,9 @@ def inference(args):
         torch.cuda.empty_cache()
 
     print()
-    import pandas as pd
-    df_exec_time = pd.DataFrame(df_exec_time, columns=['disk_name', 'exec_time'])
-    df_exec_time.to_csv(os.path.join(outputdir, 'exec_time.csv'), index=False)
+    #import pandas as pd
+    #df_exec_time = pd.DataFrame(df_exec_time, columns=['disk_name', 'exec_time'])
+    #df_exec_time.to_csv(os.path.join(outputdir, 'exec_time.csv'), index=False)
 
 
 
@@ -304,6 +312,7 @@ if __name__ == '__main__':
     parser_inf   = subparsers.add_parser('inference', help='Process images with a network')
     parser_inf.add_argument('model',       type=str, help='Path to pretrained model')
     parser_inf.add_argument('images',      type=str, help='Path to a text file containing paths to images')
+    parser_inf.add_argument('annotation_path', type=str, help='Path to a text file containing paths to anotation')
     parser_inf.add_argument('--output',    type=str, default='inference/', help='Output directory')
     parser_inf.add_argument('--suffix',    type=str, default='',           help='Suffix/description to add to output name')
     parser_inf.add_argument('--seg',       type=bool,default=False,        help='Save only segmentation output')

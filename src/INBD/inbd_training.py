@@ -27,7 +27,7 @@ class INBD_Task(TrainingTask):
         self.per_epoch_it   = per_epoch_it
         self.bd_augment     = bd_augment
     
-    def training_step(self, batch:tp.Tuple[TrainstepData, int], device='cuda', debug=False) -> tp.Tuple[torch.Tensor, tp.Dict]:
+    def training_step(self, batch:tp.Tuple[TrainstepData, int], device='cuda', width=None, debug=False) -> tp.Tuple[torch.Tensor, tp.Dict]:
         data, l, index = batch
         if debug:
             from pathlib import Path
@@ -50,7 +50,7 @@ class INBD_Task(TrainingTask):
             #width     = estimate_radial_range(boundary, data.segmentation.boundary)
             #if width is None:
                 #fallback
-            width     = data.segmentation.boundary.shape[1] / 6
+            width     = data.segmentation.boundary.shape[1] / 6 if width is not None else width
             
             if self.bd_augment:
                 boundary  = augment_boundary_offset(boundary) #must come after width estimation
@@ -63,7 +63,6 @@ class INBD_Task(TrainingTask):
                 image = pgrid.image
                 segmented = pgrid.segmentation
                 annotation = pgrid.annotation
-
                 output_image_file = f'{str(output_dir)}/pgrid_image_{index}_{l}_0.png'
                 Drawing.save_tensor_image(image, output_image_file)
                 #output_segmented_file = f'{str(output_dir)}/pgrid_segmented_{index}_{l}_0.png'
