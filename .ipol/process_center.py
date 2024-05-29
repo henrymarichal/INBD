@@ -4,10 +4,11 @@ import cv2
 
 def mannually(filename):
     import os
+    os.system(f"cat {filename}")
     #open txt with pandas
-    import pandas as pd
-    df = pd.read_csv(filename, header=None)
-    print(df)
+    #import pandas as pd
+    #df = pd.read_csv(filename, header=None)
+    #print(df)
     raise
     return
 
