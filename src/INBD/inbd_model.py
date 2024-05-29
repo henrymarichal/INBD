@@ -123,7 +123,7 @@ class INBD_Model(UNet):
 
             annotation = cv2.imread(str(annotation_path), cv2.IMREAD_UNCHANGED)
             #convert to gray scale
-            annotation = cv2.cvtColor(annotation, cv2.COLOR_BGR2GRAY)
+            #annotation = cv2.cvtColor(annotation, cv2.COLOR_BGR2GRAY)
             centermask = np.zeros((annotation.shape[0], annotation.shape[1]), dtype=bool)
             centermask[annotation>0] = True
             #reshape to x shape
