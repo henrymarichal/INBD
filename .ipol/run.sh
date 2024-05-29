@@ -26,7 +26,8 @@ fi
 # Execute algorithm
 #python $BIN/metric_influence_area.py --dt_filename $input_2 --gt_filename $input_1 --img_filename $input_0  --cx $Cx --cy $Cy --th $threshold --output_dir $HOME
 
-python $BIN/main.py --detection_path $input_0 --disk_name $disk_name --th $threshold --output_dir $HOME
+#python $BIN/main.py --detection_path $input_0 --disk_name $disk_name --th $threshold --output_dir $HOME
 
 #python $BIN/main.py --input $input --cx $Cx --cy $Cy --root $BIN --output_dir ./  --th_high $th_high --th_low $th_low --hsize $hsize --wsize $wsize --sigma $sigma --save_imgs 1
+python main.py inference models/model.pt.zip assets/F02c.png assets/F02c_mask.png --output $HOME/output/
 

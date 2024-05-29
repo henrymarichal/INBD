@@ -15,7 +15,7 @@ ENV bin /workdir/bin/
 RUN mkdir -p $bin && chmod -R 777 $bin
 WORKDIR $bin
 COPY . .
-
+RUN chmod -R 777 $bin
 RUN python fetch_pretrained_models.py
 # the execution will happen in the folder /workdir/exec
 # it will be created by IPOL
