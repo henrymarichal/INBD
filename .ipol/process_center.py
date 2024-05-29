@@ -11,7 +11,6 @@ def mannually(filename):
 if __name__=="__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--input", type=str, required=True)
-    parser.add_argument("--type", type=int, required=True, default=0)
     args = parser.parse_args()
 
     mannually(args.input)

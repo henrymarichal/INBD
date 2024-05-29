@@ -7,7 +7,7 @@ BIN=$2
 HOME=$3
 
 # Extract center from mask
-stdout=$(python $BIN/.ipol/process_center.py --input inpainting_data_0.txt --type 0)
+python $BIN/.ipol/process_center.py --input inpainting_data_0.txt
 
 if [ -s inpainting_data_0.txt ]; then
   # File is not empty
