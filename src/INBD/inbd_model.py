@@ -168,18 +168,14 @@ class INBD_Model(UNet):
         if boundary is not None:
             all_boundaries = [detected_center_to_boundary( centermask, convex=False, angular_density=None )] #more accurate
             for i in range(max_n):
-                #width       = estimate_radial_range(boundary, output.boundary)
+                width       = estimate_radial_range(boundary, output.boundary)
                 width = output.boundary.shape[1] / 6
                 #width = 50 if width is not None else width #np.minimum(width, 100)
                 if width in [0, None]:
                     break
                 pgrid       = PolarGrid.construct(x, output, None, boundary, width, self.concat_radii)
-                #check if pgrid has more than 75 pixel as white
-                #print(pgrid.image.shape)
                 total_pixels = pgrid.image.shape[1] * pgrid.image.shape[2]
-                #print(pgrid.image == 1)
                 sum_pixels_white = (pgrid.image == 1).sum() / 3
-                #print(f"i: {i}, width: {width} total_pixels: {total_pixels*0.75}  {sum_pixels_white}")
                 if sum_pixels_white > total_pixels*background_threshold:
                     break
 
@@ -188,6 +184,8 @@ class INBD_Model(UNet):
                     segmented = pgrid.segmentation
                     annotation = pgrid.annotation
                     output_image_file = f'{str(debug_directory)}/pgrid_image_{i}_0.png'
+                    #TODO: log in file size of image
+
                     Drawing.save_tensor_image(image, output_image_file)
 
                 y_pred      = self.forward_from_polar_grid(pgrid)

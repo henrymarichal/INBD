@@ -2,6 +2,7 @@ import argparse, sys, os, time, glob
 import warnings;
 
 import cv2
+import numpy as np
 
 warnings.simplefilter('ignore')  #pytorch is too noisy
 
@@ -10,6 +11,9 @@ from src import util
 
 import PIL.Image
 PIL.Image.MAX_IMAGE_PIXELS = 300189952
+
+from src.util import polygon_2_labelme_json, write_json
+
 
 def train(args):
     '''Main training entry point'''
@@ -108,6 +112,7 @@ def train(args):
 
 def inference(args):
     import matplotlib.cm as mplcm, PIL.Image, numpy as np, torch
+    convert_to_labelme = True
 
     if not os.path.exists(args.images):
         print(f'File {args.images} does not exist')
@@ -115,8 +120,10 @@ def inference(args):
 
     if args.images.lower().endswith('.txt'):
         imagefiles = util.read_splitfile(args.images)
+
     elif ( args.images.lower().endswith('.jpg') or args.images.lower().endswith('.jpeg')):
         imagefiles = [args.images]
+
     else:
         print(f'[ERROR] unknown file type: {args.images}. Converting to jpg')
         img = cv2.imread(args.images)
@@ -178,6 +185,20 @@ def inference(args):
 
             boundaries_normed = np.tanh(output.boundary)/2+0.5
             PIL.Image.fromarray((boundaries_normed*255).astype('uint8')).save(outf+'.segmentation.png')
+
+        if convert_to_labelme:
+            print("Converting to labelme")
+            img = cv2.imread(f)
+            categories_img = (labelmap_rgba*255).astype('uint8')
+            polygon_list = get_ring_boundaries(categories_img)
+
+            labelme_json = polygon_2_labelme_json(polygon_list, img.shape[0], img.shape[1], 0,
+                                                  0, img, str(f), -1)
+            image_name = Path(f).stem
+            json_path = Path(f).parent / f'{image_name}.json'
+            write_json(labelme_json, str(json_path))
+
+
         tf = time.time()
 
         print(f"{disk_name} - exec time {tf-to:.2f} s")
@@ -193,6 +214,29 @@ def inference(args):
     #df_exec_time = pd.DataFrame(df_exec_time, columns=['disk_name', 'exec_time'])
     #df_exec_time.to_csv(os.path.join(outputdir, 'exec_time.csv'), index=False)
 
+
+def get_ring_boundaries(categories_img, debug):
+    classes_values = np.unique(categories_img)
+    # remove background
+    classes_values = classes_values[classes_values > 0]
+    polygon_list = []
+    for ci in classes_values:
+        debug_mask = np.zeros_like(categories_img)
+        debug_mask[categories_img == ci] = 255
+
+        # compute external contour in the mask
+        contours, _ = cv2.findContours((debug_mask == 255).astype(np.uint8), cv2.RETR_EXTERNAL,
+                                       cv2.CHAIN_APPROX_SIMPLE)
+        if len(contours) == 0:
+            continue
+
+        polygon_list.append(contours[0].squeeze())
+
+        if debug:
+            cv2.drawContours(image_debug, contours, -1, (0, 255, 0), 3)
+            debug_mask_path = resultfile.replace('.npy', f'_debugmask_{ci}.png')
+
+    return polygon_list
 
 
 def evaluate(args):

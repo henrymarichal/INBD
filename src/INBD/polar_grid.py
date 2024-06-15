@@ -2,6 +2,7 @@ import typing as tp, warnings
 import numpy as np
 import scipy
 import torch, torchvision
+import cv2
 
 from ..segmentation import SegmentationOutput
 from .boundary import Boundary
@@ -71,7 +72,7 @@ class PolarGrid(tp.NamedTuple):
 
 
 
-def estimate_distances_to_next_boundary(boundary:Boundary, segmentation:np.ndarray, slack=8, sort=False) -> np.ndarray:
+def estimate_distances_to_next_boundary(boundary:Boundary, segmentation:np.ndarray, slack=8, sort=False, debug=None) -> np.ndarray:
     assert len(segmentation.shape) == 2
     all_points = np.argwhere(np.asarray(segmentation > 0))
     points     = all_points - boundary.center
@@ -87,12 +88,24 @@ def estimate_distances_to_next_boundary(boundary:Boundary, segmentation:np.ndarr
         order   = np.argsort(ixs)
         p_radii = p_radii[order]
         ixs     = ixs[order]
+
     b_radii = b_radii[ixs]
     ok_mask = (p_radii > b_radii + slack)
     p_radii = np.where( ok_mask , p_radii - b_radii , np.inf)
     bins    = np.arange(ixs.max()+1)
     minima  = scipy.ndimage.minimum(p_radii, ixs, bins)
     minima  = np.where( np.isin(bins, ixs), minima, np.inf )
+
+    if debug:
+        #Save segmentation image
+        segmentation_image = np.zeros(segmentation.shape, dtype='uint8')
+        segmentation_image[all_points.T.tolist()] = 255
+        segmentation_path = debug / 'segmentation.png'
+        cv2.imwrite(str(segmentation_path), segmentation_image)
+
+        #Save boundary image.
+
+
     return minima
 
 def estimate_radial_range(boundary:Boundary, segmentation:np.ndarray, **kw) -> tp.Union[float, None]:
