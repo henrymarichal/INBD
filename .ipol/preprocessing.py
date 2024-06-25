@@ -72,6 +72,8 @@ def main(filename, img_path, mask_path, hsize = None, wsize = None):
     generate_mask_image_from_txt(filename, img_path, mask_path)
     resize_image(img_path, mask_path, hsize, wsize)
 
+    return
+
 if __name__=="__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--input_poly", type=str, required=True)
