@@ -11,7 +11,7 @@ wsize=$6
 hsize=$7
 
 # Extract center from mask
-python $BIN/.ipol/preprocessing.py --input_poly $input_1 --input_img $input_0 --output_img $output_0 --hsize $hsize --wsize $wsize
+python $BIN/.ipol/preprocessing.py --input_poly $input_1 --input_img $input_0 --mask_path $output_0 --hsize $hsize --wsize $wsize
 
 #if [ -s inpainting_data_0.txt ]; then
   # File is not empty
