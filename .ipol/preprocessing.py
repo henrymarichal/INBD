@@ -64,6 +64,7 @@ def resize_image(img_path, mask_path, hsize, wsize):
 
     import os
     os.system("rm -f " + img_path)
+    os.system("rm -f " + mask_path)
 
     cv2.imwrite(img_path, img_r)
     cv2.imwrite(mask_path, mask_r)
