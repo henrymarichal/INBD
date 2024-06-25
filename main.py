@@ -109,10 +109,10 @@ def train(args):
     os.remove(model_destination_tmp)
     print('Saved to ', model_destination)
 
-
+from src.util import resize_image_using_pil_lib
 def inference(args):
     import matplotlib.cm as mplcm, PIL.Image, numpy as np, torch
-    convert_to_labelme = True
+    convert_to_labelme = False
 
     if not os.path.exists(args.images):
         print(f'File {args.images} does not exist')
@@ -188,15 +188,40 @@ def inference(args):
 
         if convert_to_labelme:
             print("Converting to labelme")
-            img = cv2.imread(f)
-            categories_img = (labelmap_rgba*255).astype('uint8')
-            polygon_list = get_ring_boundaries(categories_img)
+            classes_values = np.unique(labelmap_rgba)
+            # remove background
+            classes_values = classes_values[classes_values > 0]
+            polygon_list = []
+            for ci in classes_values:
+                debug_mask = np.zeros_like(labelmap_rgba)
+                debug_mask[labelmap_rgba == ci] = 255
 
-            labelme_json = polygon_2_labelme_json(polygon_list, img.shape[0], img.shape[1], 0,
-                                                  0, img, str(f), -1)
+                # compute external contour in the mask
+                _, contours, _ = cv2.findContours((debug_mask == 255).astype(np.uint8), cv2.RETR_EXTERNAL,
+                                                  cv2.CHAIN_APPROX_SIMPLE)
+                if len(contours) == 0:
+                    continue
+
+                cv2.drawContours(image_orig, contours, -1, (255, 0, 0), 10)
+
+                polygon_list.append(contours[0].squeeze())
+
+
+            labelme_json = polygon_2_labelme_json(polygon_list, labelmap_rgba.shape[0], labelmap_rgba.shape[1], 0,
+                                                  0,
+                                                  image_orig, str(f), -1)
             image_name = Path(f).stem
             json_path = Path(f).parent / f'{image_name}.json'
             write_json(labelme_json, str(json_path))
+
+            json_debug_path = str(json_path).replace('.json', '_debug.png')
+
+            # write image name in image_debug
+            cv2.putText(image_orig, image_name, (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2)
+            # reshape 640 x 640
+            image_orig = resize_image_using_pil_lib(image_orig, 640, 640)
+
+            cv2.imwrite(json_debug_path, image_orig)
 
 
         tf = time.time()
@@ -215,7 +240,7 @@ def inference(args):
     #df_exec_time.to_csv(os.path.join(outputdir, 'exec_time.csv'), index=False)
 
 
-def get_ring_boundaries(categories_img, debug):
+def get_ring_boundaries(categories_img, debug=False):
     classes_values = np.unique(categories_img)
     # remove background
     classes_values = classes_values[classes_values > 0]
@@ -232,9 +257,9 @@ def get_ring_boundaries(categories_img, debug):
 
         polygon_list.append(contours[0].squeeze())
 
-        if debug:
-            cv2.drawContours(image_debug, contours, -1, (0, 255, 0), 3)
-            debug_mask_path = resultfile.replace('.npy', f'_debugmask_{ci}.png')
+        #if debug:
+        #    cv2.drawContours(image_debug, contours, -1, (0, 255, 0), 3)
+        #    debug_mask_path = resultfile.replace('.npy', f'_debugmask_{ci}.png')
 
     return polygon_list
 
