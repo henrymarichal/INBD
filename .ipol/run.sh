@@ -7,19 +7,21 @@ input_1=$2
 output_0=$3
 BIN=$4
 HOME=$5
+wsize=$6
+hsize=$7
 
 # Extract center from mask
-python $BIN/.ipol/process_center.py --input_poly $input_1 --input_img $input_0 --output_img $output_0
+python $BIN/.ipol/preprocessing.py --input_poly $input_1 --input_img $input_0 --output_img $output_0 --hsize $hsize --wsize $wsize
 
 #if [ -s inpainting_data_0.txt ]; then
   # File is not empty
-#  python $BIN/.ipol/process_center.py --input_poly inpainting_data_0.txt --input_img $input_0 --output_img $output_0
+#  python $BIN/.ipol/preprocessing.py --input_poly inpainting_data_0.txt --input_img $input_0 --mask_path $output_0
   #rm inpainting_data_0.txt
 #fi
 #else
 #  # File is  empty
 #  $ANT_CENTER_DETECTOR/build/AntColonyPith --animated=false --input $input_0
-#  stdout=$(python $BIN/.ipol/process_center.py --input $input_0 --type 1)
+#  stdout=$(python $BIN/.ipol/preprocessing.py --input $input_0 --type 1)
 #
 #fi
 #Cy=$(echo $stdout | awk '{print $1}')
