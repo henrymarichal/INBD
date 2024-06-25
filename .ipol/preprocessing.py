@@ -62,6 +62,9 @@ def resize_image(img_path, mask_path, hsize, wsize):
     img_r = resize_image_using_pil_lib(img, hsize, wsize)
     mask_r = resize_image_using_pil_lib(mask, hsize, wsize)
 
+    import os
+    os.system("rm -f " + img_path)
+
     cv2.imwrite(img_path, img_r)
     cv2.imwrite(mask_path, mask_r)
 
