@@ -70,7 +70,7 @@ def resize_image(img_path, mask_path, hsize, wsize):
 
 def main(filename, img_path, mask_path, hsize = None, wsize = None):
     generate_mask_image_from_txt(filename, img_path, mask_path)
-    #resize_image(img_path, mask_path, hsize, wsize)
+    resize_image(img_path, mask_path, hsize, wsize)
 
     return
 
