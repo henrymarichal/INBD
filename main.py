@@ -220,7 +220,7 @@ def inference(args):
             # write image name in image_debug
             cv2.putText(image_orig, image_name, (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 1)
             # reshape 640 x 640
-            image_orig = resize_image_using_pil_lib(image_orig, 640, 640)
+            #image_orig = resize_image_using_pil_lib(image_orig, 640, 640)
 
             cv2.imwrite(json_debug_path, image_orig)
 
