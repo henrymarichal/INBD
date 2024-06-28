@@ -112,7 +112,7 @@ def train(args):
 from src.util import resize_image_using_pil_lib
 def inference(args):
     import matplotlib.cm as mplcm, PIL.Image, numpy as np, torch
-    convert_to_labelme = False
+    convert_to_labelme = True
 
     if not os.path.exists(args.images):
         print(f'File {args.images} does not exist')
@@ -188,13 +188,14 @@ def inference(args):
 
         if convert_to_labelme:
             print("Converting to labelme")
-            classes_values = np.unique(labelmap_rgba)
+            classes_values = np.unique(labelmap)
+            image_orig = cv2.imread(f)
             # remove background
             classes_values = classes_values[classes_values > 0]
             polygon_list = []
             for ci in classes_values:
-                debug_mask = np.zeros_like(labelmap_rgba)
-                debug_mask[labelmap_rgba == ci] = 255
+                debug_mask = np.zeros_like(labelmap)
+                debug_mask[labelmap == ci] = 255
 
                 # compute external contour in the mask
                 _, contours, _ = cv2.findContours((debug_mask == 255).astype(np.uint8), cv2.RETR_EXTERNAL,
@@ -202,22 +203,22 @@ def inference(args):
                 if len(contours) == 0:
                     continue
 
-                cv2.drawContours(image_orig, contours, -1, (255, 0, 0), 10)
+                cv2.drawContours(image_orig, contours, -1, (255, 0, 0), 2)
 
                 polygon_list.append(contours[0].squeeze())
 
 
-            labelme_json = polygon_2_labelme_json(polygon_list, labelmap_rgba.shape[0], labelmap_rgba.shape[1], 0,
+            labelme_json = polygon_2_labelme_json(polygon_list, labelmap.shape[0], labelmap.shape[1], 0,
                                                   0,
                                                   image_orig, str(f), -1)
             image_name = Path(f).stem
-            json_path = Path(f).parent / f'{image_name}.json'
+            json_path = Path(outputdir) / f'{image_name}.json'
             write_json(labelme_json, str(json_path))
 
-            json_debug_path = str(json_path).replace('.json', '_debug.png')
+            json_debug_path = str(Path(outputdir) / "debug.png")
 
             # write image name in image_debug
-            cv2.putText(image_orig, image_name, (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2)
+            cv2.putText(image_orig, image_name, (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 1)
             # reshape 640 x 640
             image_orig = resize_image_using_pil_lib(image_orig, 640, 640)
 
