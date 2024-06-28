@@ -198,7 +198,7 @@ def inference(args):
                 debug_mask[labelmap == ci] = 255
 
                 # compute external contour in the mask
-                _, contours, _ = cv2.findContours((debug_mask == 255).astype(np.uint8), cv2.RETR_EXTERNAL,
+                contours, _  = cv2.findContours((debug_mask == 255).astype(np.uint8), cv2.RETR_EXTERNAL,
                                                   cv2.CHAIN_APPROX_SIMPLE)
                 if len(contours) == 0:
                     continue
